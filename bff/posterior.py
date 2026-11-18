@@ -1,7 +1,9 @@
 import numpy as np
 
 import os
-import deepdish as dd
+import h5py
+
+from .fit import fit
 
 
 class posterior(object):
@@ -32,10 +34,18 @@ class posterior(object):
             raise IOError("Fit results not found for " + self.ID + ".")
 
         # Reconstruct the fitted model.
-        self.fit_instructions = dd.io.load(fname, group="/fit_instructions")
+        with h5py.File(fname, "r") as file:
+            fit_info_str = file.attrs["fit_instructions"]
+            # Evaluate with numpy names (array, float64, ...) available
+            self.fit_instructions = eval(fit_info_str,
+                                         {**vars(np), "np": np})
 
-        # 2D array of samples for the fitted parameters only.
-        self.samples2d = dd.io.load(fname, group="/samples2d")
+            # 2D array of samples for the fitted parameters only.
+            self.samples2d = np.array(file["samples2d"])
+
+        # Recover the fitted parameter names (in the same order as the
+        # columns of samples2d) using the same logic as the fit class.
+        fit._process_fit_instructions(self)
 
         # If fewer than n_samples exist in posterior, reduce n_samples
         if self.samples2d.shape[0] < self.n_samples:
@@ -48,7 +58,7 @@ class posterior(object):
         self.samples = {}  # Store all posterior samples
 
         # Add 1D posteriors for fitted params to the samples dictionary
-        for i in range(self.fitted_model.ndim):
-            param_name = self.fitted_model.params[i]
+        for i in range(self.ndim):
+            param_name = self.params[i]
 
             self.samples[param_name] = self.samples2d[self.indices, i]

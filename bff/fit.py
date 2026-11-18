@@ -71,9 +71,9 @@ class fit(object):
             file = h5py.File(self.fname[:-1] + ".h5", "r")
             self._get_posterior()
             fit_info_str = file.attrs["fit_instructions"]
-            fit_info_str = fit_info_str.replace("array", "np.array")
-            fit_info_str = fit_info_str.replace("float", "np.float")
-            self.fit_instructions = eval(fit_info_str)
+            # Evaluate with numpy names (array, float64, ...) available
+            self.fit_instructions = eval(fit_info_str,
+                                         {**vars(np), "np": np})
 
             if rank == 0:
                 print("\nResults loaded from " + self.fname[:-1] + ".h5\n")
@@ -227,13 +227,13 @@ class fit(object):
 
                 # Any hyper-parameters of these prior distributions.
                 self.hyper_params.append({})
-                for i in range(len(all_keys)):
-                    if all_keys[i].startswith(prior_key + "_"):
-                        hyp_key = all_keys[i][len(prior_key)+1:]
-                        self.hyper_params[-1][hyp_key] = all_vals[i]
+                for j in range(len(all_keys)):
+                    if all_keys[j].startswith(prior_key + "_"):
+                        hyp_key = all_keys[j][len(prior_key)+1:]
+                        self.hyper_params[-1][hyp_key] = all_vals[j]
 
             # Find any parameters which mirror the value of a fit param.
-            if all_vals[i] in all_keys:
+            if isinstance(all_vals[i], str) and all_vals[i] in all_keys:
                 self.mirror_pars[all_keys[i]] = all_vals[i]
 
         # Find the dimensionality of the fit
