@@ -22,17 +22,10 @@ from .prior import prior
 def make_dirs(run="."):
     """ Make local directory structure in working dir. """
 
-    working_dir = os.getcwd()
-
-    if not os.path.exists(working_dir + "/bff"):
-        os.mkdir(working_dir + "/bff")
+    os.makedirs("bff", exist_ok=True)
 
     if run != ".":
-        if not os.path.exists("bff/" + run):
-            os.mkdir("bff/" + run)
-
-        if not os.path.exists("bff/plots/" + run):
-            os.mkdir("bff/plots/" + run)
+        os.makedirs("bff/" + run, exist_ok=True)
 
 
 class fit(object):

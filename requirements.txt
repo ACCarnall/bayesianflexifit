@@ -1,0 +1,14 @@
+# Core dependencies of the bff package
+numpy
+scipy
+h5py
+# pymultinest also needs the MultiNest library installed separately:
+# https://johannesbuchner.github.io/PyMultiNest/install.html
+pymultinest
+
+# Optional: run fits in parallel under mpirun
+# mpi4py
+
+# Optional: needed to run examples/fit_gaussian_line.ipynb
+# matplotlib
+# corner
